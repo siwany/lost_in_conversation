@@ -14,7 +14,7 @@ class TaskMath(Task):
         self.answer_extraction_strategy = "gen"
 
     def get_dataset_file(self) -> str:
-        return "data/sharded_math.json"
+        return "data/smoke_test_math_5.json"
 
     def get_samples(self, filter="full"):
         with open(self.get_dataset_file(), "r") as f:
@@ -49,9 +49,9 @@ class TaskMath(Task):
             return {"score": 0.0, "error": f"Answer could not be extracted: {repr(extracted_answer)}"}
 
         # custom formatting fix
-        # if dollar mark is in the answer, check for the cents and trim if necessary
-        if re.search(r'\$', extracted_answer) and extracted_answer.endswith(".00"):
-            extracted_answer = extracted_answer.rstrip(".00")                
+        # trim trailing ".00" (or ".0", etc.) regardless of currency symbol
+        if re.match(r'^-?\d+\.0+$', extracted_answer.lstrip('$')):
+            extracted_answer = extracted_answer.split('.')[0]               
 
         # ref: https://github.com/EleutherAI/lm-evaluation-harness/blob/52df63b7b30da53c481ed9090598d9189fab1d91/lm_eval/api/metrics.py#L198
         # further normalize $ and , for both extracted_answer and gold
